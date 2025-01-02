@@ -36,6 +36,72 @@ The integration encompasses:
 
 ![](architecture.png)
 
+### Cross-Chain Verification System
+
+```mermaid
+graph TB
+    subgraph Bitcoin Chain
+        BTCN[Bitcoin Network]
+        BTCV[BTC Validator Set]
+        SPV[SPV Verification]
+        
+        BTCN --> SPV
+        BTCV --> SPV
+    end
+    
+    subgraph Babylon Protocol
+        subgraph Finality Module
+            FSM[Finality State Machine]
+            SV[Signature Verification]
+            VP[Voting Power]
+            
+            FSM --> SV
+            SV --> VP
+        end
+        
+        subgraph Stake Management
+            SM[Stake Manager]
+            VM[Vault Manager]
+            PM[Power Manager]
+            
+            SM --> VM
+            VM --> PM
+            PM --> VP
+        end
+        
+        subgraph ZK Bridge
+            ZG[ZK Generator]
+            ZV[ZK Verifier]
+            
+            ZG --> ZV
+        end
+    end
+    
+    subgraph Taiko Network
+        subgraph L2 Protocol
+            BP[Block Proposer]
+            BV[Block Verifier]
+            PC[Preconfirmation]
+            
+            BP --> BV
+            BV --> PC
+        end
+        
+        subgraph State Machine
+            SS[State Sync]
+            FV[Finality Verifier]
+            
+            SS --> FV
+            FV --> PC
+        end
+    end
+    
+    SPV --> VM
+    VP --> FV
+    ZV --> SS
+```
+
+
 ### 2.2 Core Components
 
 #### 2.2.1 Babylon Components
