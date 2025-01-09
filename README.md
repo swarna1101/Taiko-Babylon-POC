@@ -139,30 +139,47 @@ interface FinalityProvider {
 
 ### 3.2 BTC Staking Contract
 
+#### Clarification and Deployment Details:
+The **BTC staking contract** will be deployed on the **Babylon chain**, utilizing the CosmWasm smart contract framework. The Babylon chain is specifically designed to handle BTC staking and finality-related logic while ensuring trustless interactions between the Bitcoin network and OP stack-based chains like Taiko.
+
+##### Why CosmWasm Instead of Solidity?
+Although the contract is represented in Solidity syntax for illustrative purposes, the actual implementation will use **CosmWasm**. This is because:
+1. **Compatibility with Babylon**: CosmWasm is natively supported on Babylon, which ensures seamless integration with the chain’s core architecture.
+2. **Trustless BTC Staking**: Babylon allows Bitcoin holders to stake BTC in a self-custodial vault on the Bitcoin network without bridging assets. The CosmWasm environment enforces this trustless staking.
+3. **Interoperability with OP Stack**: Babylon’s staking contracts serve as the backbone for BTC-backed finality on OP-stack chains.
+
+The BTC staking contract will:
+- Verify BTC transactions using SPV proofs, ensuring that BTC is staked natively on the Bitcoin blockchain.
+- Manage BTC delegations, including slashing mechanisms to maintain security.
+- Act as the bridge between Bitcoin and Babylon for cross-chain finality processes.
+
+#### Staking Contract Interface:
+The following interface demonstrates the core functionality of the BTC staking contract:
+
 ```solidity
 contract BTCStaking {
     struct Stake {
-        bytes32 btcTxHash;
-        uint256 amount;
-        address provider;
-        uint256 lockPeriod;
+        bytes32 btcTxHash;        // Hash of the BTC transaction locking funds
+        uint256 amount;           // Amount of BTC staked
+        address provider;         // Address of the staking provider
+        uint256 lockPeriod;       // Locking period for the stake
     }
-    
+
     struct Signature {
-        bytes32 blockHash;
-        bytes sig;
-        uint256 timestamp;
+        bytes32 blockHash;        // Hash of the finalized block
+        bytes sig;                // Finality signature
+        uint256 timestamp;        // Timestamp of the signature
     }
-    
-    mapping(address => Stake) public stakes;
-    mapping(bytes32 => Signature[]) public blockSignatures;
-    
-    function stake(bytes32 txHash, bytes proof) external;
-    function submitSignature(bytes32 blockHash, bytes sig) external;
-    function verifyStake(address provider) external view returns (uint256);
-    function slash(address provider, bytes proof) external;
+
+    mapping(address => Stake) public stakes;                 // Active stakes
+    mapping(bytes32 => Signature[]) public blockSignatures;  // Finality signatures for blocks
+
+    function stake(bytes32 txHash, bytes proof) external;    // Stake BTC
+    function submitSignature(bytes32 blockHash, bytes sig) external; // Submit finality signature
+    function verifyStake(address provider) external view returns (uint256); // Verify stake
+    function slash(address provider, bytes proof) external;  // Slash provider for violations
 }
-```
+
 
 ### 3.3 Preconfirmation Enhancement
 
@@ -187,6 +204,13 @@ contract EnhancedPreconfirmation {
         external view returns (bool, uint256);
 }
 ```
+
+#### Core Operations:
+
+- **Staking BTC:** Users lock BTC in a self-custodial vault on the Bitcoin network. The stake function validates the staking proof using SPV.
+- **Finality Signatures:** The `submitSignature` function allows providers to sign L2 blocks. These signatures are submitted to the Babylon chain for verification and tallied for quorum achievement.
+- **Slashing Violations:** If a provider misbehaves (e.g., submits invalid signatures or equivocates), the slash function enforces penalties, reducing the staked BTC as per the slashing conditions.
+
 
 ## 4. Integration Flows
 
