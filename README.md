@@ -214,7 +214,7 @@ contract EnhancedPreconfirmation {
 
 ## 4. Integration Flows
 
-### 4.1 Staking Flow
+### 4.1 Staking Flowrrr
 
 ```mermaid
 sequenceDiagram
